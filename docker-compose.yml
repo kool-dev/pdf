@@ -1,12 +1,1 @@
-version: '3.8'
-services:
-  pdf:
-    build: .
-    image: kooldev/pdf:dev
-    command: ['yarn', 'start']
-    working_dir: '/app'
-    user: pptruser
-    volumes:
-      - '.:/app'
-    ports:
-      - '3000:3000'
+kool.services.yml

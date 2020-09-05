@@ -1,0 +1,8 @@
+scripts:
+  yarn: kool docker node:14-alpine yarn
+  pdf:
+    - kool run yarn start
+
+  setup-local:
+    - kool run yarn install
+    - docker-compose build

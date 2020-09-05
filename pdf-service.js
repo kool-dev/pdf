@@ -1,6 +1,5 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
-const commander = require('commander');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -19,16 +18,19 @@ app.get('/health', (req, res) => {
     calls.health++;
     console.log('serving /health');
     deliverJson(res, {isReady, calls}, isReady ? 200 : 503);
-})
+});
+
+app.get('/from-html', async (req, res) => {
+});
 
 app.get('/from-url', async (req, res) => {
     calls.fromUrl++;
-    const url = req.param('url');
+    const url = req.query.url;
     console.log('/from-url');
 
     if (!url) {
         let msg = 'missing parameter: \'url\'';
-        deliverJson(res, {msg}, 400);
+        deliverJson(res, {msg, params: req.params}, 400);
         return;
     }
 

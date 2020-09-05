@@ -3,7 +3,6 @@
     "start": "node pdf-service.js"
   },
   "dependencies": {
-    "commander": "^6.1.0",
     "express": "^4.17.1",
     "puppeteer": "^5.2.1"
   },

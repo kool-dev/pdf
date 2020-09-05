@@ -4,5 +4,5 @@ scripts:
     - kool run yarn start
 
   setup-local:
-    - kool run yarn install
     - docker-compose build
+    - kool run yarn install

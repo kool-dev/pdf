@@ -19,4 +19,15 @@ The API will provide endpoints for generating PDFs on the fly and returning them
 
 #### From an URL
 
-Endpoint: `/from-url?url=<URL of the page we want to convert to PDF>`
+Endpoint: `GET /from-url?url=`
+
+Parameters:
+ - `url`: URL of the page we want to convert to PDF.
+
+Returns the rendered PDF from the provided URL, or a JSON with an error message and status.
+
+#### Health status
+
+Endpoint: `GET /health`
+
+Returns the current status in JSON. Status code may be 200 (active) or 503 (not ready).

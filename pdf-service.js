@@ -5,7 +5,9 @@ const fs = require('fs');
 const crypto = require('crypto');
 const app = express();
 const bodyParser = require('body-parser');
+const compression = require('compression');
 
+app.use(compression());
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({
     extended: true,

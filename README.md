@@ -7,7 +7,7 @@ To get started with development locally (using [`kool`](https://github.com/kool-
 
 - Fork the repo.
 - Clone the fork.
-- `kool run setup-local` - this will build the local image and install dependencies.
+- `kool run yarn install` - this will install dependencies.
 - `kool start` - will get up the API on localhost:3000.
 - `docker-compose logs -f` - tails the API logs.
 

@@ -2,6 +2,7 @@ version: '3.8'
 services:
   pdf:
     image: kooldev/puppeteer:latest
+    restart: unless-stopped
     command: ['yarn', 'start']
     working_dir: '/app'
     user: pptruser

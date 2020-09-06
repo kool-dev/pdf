@@ -1,8 +1,11 @@
 scripts:
   yarn: kool docker node:14-alpine yarn
+
   pdf:
     - kool run yarn start
 
   setup-local:
-    - docker-compose build
     - kool run yarn install
+
+  build:
+    - docker build --no-cache -t kooldev/pdf:latest -f Dockerfile.dist .

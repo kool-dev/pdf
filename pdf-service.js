@@ -7,7 +7,11 @@ const app = express();
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
+app.use(bodyParser.urlencoded({
+    extended: true,
+    limit: '100mb',
+    parameterLimit: 1000,
+})); // support encoded bodies
 
 let port = 3000;
 let calls = {

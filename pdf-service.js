@@ -35,7 +35,7 @@ app.post('/from-html', async (req, res) => {
 
     let pdfFilePath;
     try {
-        pdfFilePath = await generatePdf(`file://${fullHtmlPath}`);
+        pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media);
     } catch (err) {
         console.log('/from-html: error generating PDF', e);
         let msg = 'failure generating PDF';
@@ -60,7 +60,7 @@ app.get('/from-url', async (req, res) => {
 
     let pdfFilePath;
     try {
-        pdfFilePath = await generatePdf(url);
+        pdfFilePath = await generatePdf(url, req.query.media);
     } catch (err) {
         console.log('/from-url: error generating PDF', e);
         let msg = 'failure generating PDF';
@@ -87,12 +87,18 @@ function deliverPdfFile(res, pdfFilePath) {
     fs.unlinkSync(pdfFilePath);
 }
 
-async function generatePdf(url) {
+async function generatePdf(url, media) {
     console.log('generatePdf: browser.newPage');
     const page = await browser.newPage();
 
     console.log('generatePdf: emulateMediaType');
-    await page.emulateMediaType('screen');
+    await page.emulateMediaType(media || 'screen');
+
+    await page.setViewport({
+        width: 1200,
+        height: 800,
+        isMobile: false,
+    });
 
     console.log('generatePdf: goto', url);
     await page.goto(url, {
@@ -111,8 +117,8 @@ async function generatePdf(url) {
         path: pdfFilePath,
         scale: parseFloat(1),
         format: 'A4',
+        printBackground: true,
         // displayHeaderFooter: false,
-        // printBackground: false,
         // landscape: false,
     });
 

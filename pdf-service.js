@@ -37,7 +37,7 @@ app.post('/from-html', async (req, res) => {
     calls.fromHtml++;
     const html = req.body.html;
     const htmlFile = md5(html.substr(0, 100)) + '.html';
-    const fullHtmlPath = path.join(__dirname, storagePath, htmlFile);
+    const fullHtmlPath = path.join(storagePath, htmlFile);
 
     fs.writeFileSync(fullHtmlPath, html);
 

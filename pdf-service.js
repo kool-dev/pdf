@@ -13,6 +13,11 @@ app.use(bodyParser.urlencoded({
     parameterLimit: 1000,
 })); // support encoded bodies
 
+const storagePath = path.join(__dirname, 'storage');
+if (!fs.existsSync(storagePath)) {
+    fs.mkdirSync(storagePath);
+}
+
 let port = 3000;
 let calls = {
     health: 0,
@@ -21,7 +26,6 @@ let calls = {
 };
 let isReady = false;
 let browser = null;
-let storagePath = 'storage';
 
 app.get('/health', (req, res) => {
     calls.health++;
@@ -85,10 +89,13 @@ function deliverPdfFile(res, pdfFilePath) {
     res.setHeader('Content-Length', fs.statSync(pdfFilePath).size);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
-    reader.pipe(res);
-
-    console.log('deliverPdfFile: going to remove file', pdfFilePath);
-    fs.unlinkSync(pdfFilePath);
+    reader.on('open', () => {
+        reader.pipe(res);
+    });
+    reader.on('close', () => {
+        console.log('deliverPdfFile: going to remove file', pdfFilePath);
+        fs.unlinkSync(pdfFilePath);
+    });
 }
 
 async function generatePdf(url, media) {
@@ -110,11 +117,7 @@ async function generatePdf(url, media) {
     });
 
     let filename = md5(url) + '.pdf';
-    const pdfFolder = path.join(__dirname, storagePath);
-    if (!fs.existsSync(pdfFolder)) {
-        fs.mkdirSync(pdfFolder);
-    }
-    const pdfFilePath = path.join(pdfFolder, filename);
+    const pdfFilePath = path.join(storagePath, filename);
 
     console.log('generatePdf: generate PDF', pdfFilePath);
     await page.pdf({

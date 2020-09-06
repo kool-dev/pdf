@@ -13,6 +13,7 @@ let port = 3000;
 let calls = {
     health: 0,
     fromUrl: 0,
+    fromHtml: 0,
 };
 let isReady = false;
 let browser = null;
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/from-html', async (req, res) => {
+    calls.fromHtml++;
     const html = req.body.html;
     const htmlFile = md5(html.substr(0, 100)) + '.html';
     const fullHtmlPath = path.join(__dirname, storagePath, htmlFile);
@@ -123,7 +125,7 @@ function md5(seed) {
 
 app.listen(port, () => {
     console.log(`Kool PDF service running at port ${port}`);
-    console.log(`Going to start puppeter`);
+    console.log('Going to start puppeter');
 
     (async () => {
         browser = await puppeteer.launch({

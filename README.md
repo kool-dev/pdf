@@ -2,7 +2,37 @@
 
 This is a work in progress for a PDF generation micro-service.
 
-## Getting started
+## Getting started using this microservice in your project
+
+If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/kool) to make things simpler) you can get PDF generation on your project with a few simple steps:
+
+- Add the service to your `docker-compose.yml` file:
+
+```yml
+  pdf:
+    image: "kooldev/pdf:latest"
+    expose:
+      - 3000
+```
+
+- After starting the service containers (with either `kool start` or `docker-compose up -d`), you can already start using the microservice to make PDFs! Example using PHP:
+
+```php
+use GuzzleHttp\Client;
+
+$pdf = (new Client())->post('http://pdf/from-html', [
+    'form_params' => [
+        'html' => '<h1>This is my super kool HTML that I want to turn into an awesome PDF file!</h1> <p> This is a very silly example, but you get the idea of how powerful this is <b>:)</b> </p>',
+    ],
+])->getBody();
+
+file_put_contents('path/to/my/super-kool.pdf', $pdf);
+```
+
+* Important to notice, the code above assumes you are running it from within another container in the same Docker Compose application so the `pdf` domain resolves to our microservice.
+
+## Getting started on developing locally this microservice
+
 To get started with development locally (using [`kool`](https://github.com/kool-dev/kool), of course!):
 
 - Fork the repo.
@@ -12,6 +42,14 @@ To get started with development locally (using [`kool`](https://github.com/kool-
 - `docker-compose logs -f` - tails the API logs.
 
 In order to manage dependencies and run commands, please remind of using `kool run yarn` to stick with one single yarn version.
+
+## Roadmap
+
+Soon to be added wishes:
+
+- Parameters to better control Javascript execution/wait condition.
+- Conversion to images also.
+- Got some _kool_ feature you are not seeing? Please open a ticket to suggest it!
 
 ## API
 

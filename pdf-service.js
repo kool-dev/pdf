@@ -71,14 +71,14 @@ app.get('/from-url', async (req, res) => {
     let pdfFilePath;
     try {
         pdfFilePath = await generatePdf(url, req.query.media);
+
+        deliverPdfFile(res, pdfFilePath);
     } catch (err) {
         console.log('/from-url: error generating PDF', e);
         let msg = 'failure generating PDF';
-        deliverJson(res, {msg, err}, 500);
-        return;
-    }
 
-    deliverPdfFile(res, pdfFilePath);
+        deliverJson(res, {msg, err}, 500);
+    }
 });
 
 function deliverJson(res, resp, status = 200) {
@@ -130,6 +130,8 @@ async function generatePdf(url, media) {
         // displayHeaderFooter: false,
         // landscape: false,
     });
+
+    page.close();
 
     return pdfFilePath;
 }

@@ -20,9 +20,13 @@ If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/k
 ```php
 use GuzzleHttp\Client;
 
-$pdf = (new Client())->post('http://pdf/from-html', [
+$pdf = (new Client())->post('http://pdf_dev/from-html', [
     'form_params' => [
         'html' => '<h1>This is my super kool HTML that I want to turn into an awesome PDF file!</h1> <p> This is a very silly example, but you get the idea of how powerful this is <b>:)</b> </p>',
+        'options' => json_encode([
+            'format' => 'A4',
+            'printBackground' => false,
+        ]),
     ],
 ])->getBody();
 
@@ -30,6 +34,10 @@ file_put_contents('path/to/my/super-kool.pdf', $pdf);
 ```
 
 * Important to notice, the code above assumes you are running it from within another container in the same Docker Compose application so the `pdf` domain resolves to our microservice.
+
+* The `options` should be a json data type
+
+* You can see all these `options` in [puppeteer docs](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagepdfoptions)
 
 ## Getting started on developing locally this microservice
 

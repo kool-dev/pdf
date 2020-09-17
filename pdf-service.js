@@ -38,6 +38,7 @@ app.get('/health', (req, res) => {
 app.post('/from-html', async (req, res) => {
     calls.fromHtml++;
     const html = req.body.html;
+    const options = getPdfOptions(req.body.options);
     const htmlFile = md5(html.substr(0, 100)) + '.html';
     const fullHtmlPath = path.join(storagePath, htmlFile);
 
@@ -45,7 +46,7 @@ app.post('/from-html', async (req, res) => {
 
     let pdfFilePath;
     try {
-        pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media);
+        pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media, options);
     } catch (err) {
         console.log('/from-html: error generating PDF', e);
         let msg = 'failure generating PDF';
@@ -100,7 +101,7 @@ function deliverPdfFile(res, pdfFilePath) {
     });
 }
 
-async function generatePdf(url, media) {
+async function generatePdf(url, media, options = {}) {
     console.log('generatePdf: browser.newPage');
     const page = await browser.newPage();
 
@@ -127,8 +128,7 @@ async function generatePdf(url, media) {
         scale: parseFloat(1),
         format: 'A4',
         printBackground: true,
-        // displayHeaderFooter: false,
-        // landscape: false,
+        ...options
     });
 
     page.close();
@@ -138,6 +138,40 @@ async function generatePdf(url, media) {
 
 function md5(seed) {
     return crypto.createHash('md5').update(seed).digest('hex');
+}
+
+function getPdfOptions(options) {
+    if (typeof options !== 'string') {
+        return {};
+    }
+
+    const parsedOptions = JSON.parse(options);
+
+    let mappedOptions = {};
+
+    [
+        'path',
+        'scale',
+        'displayHeaderFooter',
+        'headerTemplate',
+        'footerTemplate',
+        'printBackground',
+        'landscape',
+        'pageRanges',
+        'format',
+        'width',
+        'height',
+        'margin',
+        'preferCSSPageSize',
+    ].forEach(prop => {
+        if (parsedOptions[prop] === undefined) {
+            return;
+        }
+
+        mappedOptions[prop] = parsedOptions[prop];
+    });
+
+    return mappedOptions;
 }
 
 app.listen(port, () => {

@@ -10,3 +10,12 @@ services:
       - '.:/app'
     ports:
       - '3000:3000'
+    networks:
+      kool_global:
+        aliases:
+          - pdf_dev
+
+networks:
+  kool_global:
+    external: true
+    name: "${KOOL_GLOBAL_NETWORK:-kool_global}"

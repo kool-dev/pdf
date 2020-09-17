@@ -1,9 +1,10 @@
 FROM kooldev/puppeteer:latest
 
 WORKDIR /app
-ADD . /app
+COPY --chown=pptruser:pptruser . /app
 
 ENV NODE_ENV=production
+
 RUN yarn install
 
 CMD ["yarn", "start"]

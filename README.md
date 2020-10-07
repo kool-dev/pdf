@@ -1,6 +1,6 @@
 # PDF microservice
 
-This is a work in progress for a PDF generation micro-service.
+PDF generation micro-service. Super easy to add on `kool` and `docker-compose` based environments, for generating PDFs from any URLs or given HTML content.
 
 ## Getting started using this microservice in your project
 

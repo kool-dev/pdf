@@ -60,7 +60,7 @@ app.post('/from-html', async (req, res) => {
 
 app.get('/from-url', async (req, res) => {
     calls.fromUrl++;
-    const url = req.query.url;
+    const url = withHttp(req.query.url);
     console.log('/from-url');
 
     if (!url) {
@@ -81,6 +81,16 @@ app.get('/from-url', async (req, res) => {
         deliverJson(res, {msg, err}, 500);
     }
 });
+
+function withHttp (url) {
+    if (!url) {
+        return;
+    }
+
+    return !/^https?:\/\//i.test(url)
+        ? `http://${url}`
+        : url;
+}
 
 function deliverJson(res, resp, status = 200) {
     res.status(status).contentType('json').send(resp);

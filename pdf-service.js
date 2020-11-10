@@ -60,7 +60,7 @@ app.post('/from-html', async (req, res) => {
 
 app.get('/from-url', async (req, res) => {
     calls.fromUrl++;
-    const url = withHttp(req.query.url);
+    let url = req.query.url;
     console.log('/from-url');
 
     if (!url) {
@@ -71,7 +71,7 @@ app.get('/from-url', async (req, res) => {
 
     let pdfFilePath;
     try {
-        pdfFilePath = await generatePdf(url, req.query.media);
+        pdfFilePath = await generatePdf(withHttp(url), req.query.media);
 
         deliverPdfFile(res, pdfFilePath);
     } catch (err) {
@@ -83,10 +83,6 @@ app.get('/from-url', async (req, res) => {
 });
 
 function withHttp (url) {
-    if (!url) {
-        return;
-    }
-
     return !/^https?:\/\//i.test(url)
         ? `http://${url}`
         : url;

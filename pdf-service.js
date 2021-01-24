@@ -30,16 +30,21 @@ let isReady = false;
 let browser = null;
 
 app.get('/health', (req, res) => {
+    log('/health');
+
     calls.health++;
-    console.log('serving /health');
+
     deliverJson(res, {isReady, calls}, isReady ? 200 : 503);
 });
 
 app.post('/from-html', async (req, res) => {
+    log('/from-html');
+
     calls.fromHtml++;
+
     const html = req.body.html;
     const options = getPdfOptions(req.body.options);
-    const htmlFile = md5(html.substr(0, 100)) + '.html';
+    const htmlFile = generateFileName() + '.html';
     const fullHtmlPath = path.join(storagePath, htmlFile);
 
     fs.writeFileSync(fullHtmlPath, html);
@@ -48,9 +53,9 @@ app.post('/from-html', async (req, res) => {
     try {
         pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media, options);
     } catch (err) {
-        console.log('/from-html: error generating PDF', e);
-        let msg = 'failure generating PDF';
-        deliverJson(res, {msg, err}, 500);
+        log('/from-html: error generating PDF', e);
+        deliverJson(res, {msg: 'failure generating PDF', err}, 500);
+
         return;
     }
 
@@ -59,23 +64,22 @@ app.post('/from-html', async (req, res) => {
 });
 
 app.get('/from-url', async (req, res) => {
+    log('/from-url');
+
     calls.fromUrl++;
     let url = req.query.url;
-    console.log('/from-url');
 
     if (!url) {
-        let msg = 'missing parameter: \'url\'';
-        deliverJson(res, {msg, params: req.params}, 400);
+        deliverJson(res, {msg: 'missing parameter: \'url\'', params: req.params}, 400);
         return;
     }
 
-    let pdfFilePath;
     try {
-        pdfFilePath = await generatePdf(withHttp(url), req.query.media);
+        let pdfFilePath = await generatePdf(withHttp(url), req.query.media);
 
         deliverPdfFile(res, pdfFilePath);
     } catch (err) {
-        console.log('/from-url: error generating PDF', e);
+        log('/from-url: error generating PDF', e);
         let msg = 'failure generating PDF';
 
         deliverJson(res, {msg, err}, 500);
@@ -93,8 +97,10 @@ function deliverJson(res, resp, status = 200) {
 }
 
 function deliverPdfFile(res, pdfFilePath) {
-    console.log('deliverPdfFile: going to deliver PDF', pdfFilePath);
+    log('deliverPdfFile: going to deliver PDF', pdfFilePath);
+
     const reader = fs.createReadStream(pdfFilePath);
+
     res.setHeader('Content-Length', fs.statSync(pdfFilePath).size);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
@@ -102,33 +108,35 @@ function deliverPdfFile(res, pdfFilePath) {
         reader.pipe(res);
     });
     reader.on('close', () => {
-        console.log('deliverPdfFile: going to remove file', pdfFilePath);
+        log('deliverPdfFile: going to remove file', pdfFilePath);
         fs.unlinkSync(pdfFilePath);
     });
 }
 
 async function generatePdf(url, media, options = {}) {
-    console.log('generatePdf: browser.newPage');
+    log('generatePdf: browser.newPage');
+
     const page = await browser.newPage();
 
-    console.log('generatePdf: emulateMediaType');
-    await page.emulateMediaType(media || 'screen');
+    log('generatePdf: emulateMediaType');
 
+    await page.emulateMediaType(media || 'screen');
     await page.setViewport({
         width: 1200,
         height: 800,
         isMobile: false,
     });
 
-    console.log('generatePdf: goto', url);
+    log('generatePdf: goto', url);
+
     await page.goto(url, {
         waitUntil: 'networkidle2',
     });
 
-    let filename = md5(url) + '.pdf';
+    let filename = generateFileName() + '.pdf';
     const pdfFilePath = path.join(storagePath, filename);
 
-    console.log('generatePdf: generate PDF', pdfFilePath);
+    log('generatePdf: generate PDF', pdfFilePath);
     await page.pdf({
         path: pdfFilePath,
         scale: parseFloat(1),
@@ -142,8 +150,14 @@ async function generatePdf(url, media, options = {}) {
     return pdfFilePath;
 }
 
-function md5(seed) {
-    return crypto.createHash('md5').update(seed).digest('hex');
+function generateFileName() {
+    return crypto.randomBytes(20).toString('hex')
+}
+
+function log(message) {
+    let date = (new Date).toLocaleString();
+
+    console.log(`[${date}] ${message}`);
 }
 
 function getPdfOptions(options) {
@@ -181,8 +195,8 @@ function getPdfOptions(options) {
 }
 
 app.listen(port, () => {
-    console.log(`Kool PDF service running at port ${port}`);
-    console.log('Going to start puppeter');
+    log(`Kool PDF service running at port ${port}`);
+    log('Going to start puppeter');
 
     (async () => {
         browser = await puppeteer.launch({
@@ -193,7 +207,7 @@ app.listen(port, () => {
             ],
         });
 
-        console.log('Started puppeteer; setting service state to Ready');
+        log('Started puppeteer; setting service state to Ready');
         isReady = true;
     })();
 });

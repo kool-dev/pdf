@@ -10,7 +10,7 @@ If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/k
 
 ```yml
   pdf:
-    image: "kooldev/pdf:latest"
+    image: "kooldev/pdf:1.0"
     expose:
       - 3000
 ```

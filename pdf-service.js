@@ -155,7 +155,7 @@ function generateFileName() {
 }
 
 function log(message) {
-    let date = (new Date).toLocaleString();
+    let date = new Date().toISOString().replace('T', ' ').substr(0, 19)
 
     console.log(`[${date}] ${message}`);
 }

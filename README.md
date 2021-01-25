@@ -11,8 +11,8 @@ If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/k
 ```yml
   pdf:
     image: "kooldev/pdf:1.0"
-    expose:
-      - 3000
+    ports:
+      - "3000:3000"
 ```
 
 - After starting the service containers (with either `kool start` or `docker-compose up -d`), you can already start using the microservice to make PDFs! Example using PHP:
@@ -20,7 +20,8 @@ If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/k
 ```php
 use GuzzleHttp\Client;
 
-$pdf = (new Client())->post('http://pdf_dev/from-html', [
+// the hostname is the docker-compose service name, or an alias you add to your docker network
+$pdf = (new Client())->post('http://pdf:3000/from-html', [
     'form_params' => [
         'html' => '<h1>This is my super kool HTML that I want to turn into an awesome PDF file!</h1> <p> This is a very silly example, but you get the idea of how powerful this is <b>:)</b> </p>',
         'options' => json_encode([

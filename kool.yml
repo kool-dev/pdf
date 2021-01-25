@@ -2,4 +2,4 @@ scripts:
   yarn: kool docker node:14-alpine yarn
 
   build:
-    - docker build --no-cache -t kooldev/pdf:latest -f Dockerfile.dist .
+    - docker build --no-cache -t kooldev/pdf:latest .

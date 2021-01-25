@@ -21,11 +21,6 @@ jobs:
         TAGNAME: ${{ steps.tagName.outputs.tag }}
       run: docker build --pull -t kooldev/pdf:$TAGNAME .
 
-    - name: Test image
-      env:
-        TAGNAME: ${{ steps.tagName.outputs.tag }}
-      run: docker run kooldev/pdf:$TAGNAME kool --version
-
     - name: Push to hub
       env:
         TAGNAME: ${{ steps.tagName.outputs.tag }}

@@ -3,7 +3,7 @@
 services:
   pdf:
     # Appications requires a special image built for deployment
-    build: Dockerfile.dist
+    build: Dockerfile
 
     # What port to map on deployment
     port: 3000

@@ -10,10 +10,12 @@ const compression = require('compression');
 app.use(compression());
 app.use(bodyParser.urlencoded({
     extended: true,
-    limit: process.env.REQUEST_SIZE_LIMIT || '250mb',
+    limit: process.env.REQUEST_SIZE_LIMIT || '400mb',
     parameterLimit: 1000,
 })); // support encoded bodies
-app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.json({
+    limit: process.env.REQUEST_SIZE_LIMIT || '400mb',
+})); // support json encoded bodies
 
 const storagePath = path.join(__dirname, 'storage');
 if (!fs.existsSync(storagePath)) {

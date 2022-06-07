@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const app = express();
 const bodyParser = require('body-parser');
 const compression = require('compression');
+const { exec } = require('child_process');
 
 app.use(compression());
 app.use(bodyParser.urlencoded({
@@ -45,6 +46,8 @@ app.post('/from-html', async (req, res) => {
     calls.fromHtml++;
 
     const html = req.body.html;
+    const disableCompression = req.body.disableCompression || false;
+    const compressionResolution = req.body.compressionResolution || 100;
     const options = getPdfOptions(req.body.options);
     const htmlFile = generateFileName() + '.html';
     const fullHtmlPath = path.join(storagePath, htmlFile);
@@ -54,6 +57,8 @@ app.post('/from-html', async (req, res) => {
     let pdfFilePath;
     try {
         pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media, options);
+
+        fs.unlinkSync(fullHtmlPath);
     } catch (err) {
         log('/from-html: error generating PDF', e);
         deliverJson(res, {msg: 'failure generating PDF', err}, 500);
@@ -61,8 +66,25 @@ app.post('/from-html', async (req, res) => {
         return;
     }
 
-    deliverPdfFile(res, pdfFilePath);
-    fs.unlinkSync(fullHtmlPath);
+    const compressedFilePath = `${pdfFilePath}_compressed.pdf`;
+
+    if (disableCompression) {
+        deliverPdfFile(res, pdfFilePath);
+    } else {
+        // compress PDF outoput
+        const cmd = `shinkpdf ${pdfFilePath} ${compressedFilePath} ${compressionResolution}`;
+        exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+                console.log('Compressing - err:', err);
+            }
+            if (stdout || stderr) {
+                console.log('Compressing - out/err:', stdout, stderr);
+            }
+
+            deliverPdfFile(res, err ? pdfFilePath : compressedFilePath);
+            fs.unlinkSync(pdfFilePath);
+        });
+    }
 });
 
 app.get('/from-url', async (req, res) => {

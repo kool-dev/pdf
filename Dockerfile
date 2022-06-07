@@ -1,4 +1,4 @@
-FROM kooldev/puppeteer:latest
+FROM kooldev/puppeteer:1.0
 
 WORKDIR /app
 COPY --chown=pptruser:pptruser . /app

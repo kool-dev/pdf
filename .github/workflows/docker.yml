@@ -13,21 +13,36 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@master
 
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      if: github.ref == 'refs/heads/master' && github.repository == 'kool-dev/pdf'
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
     - uses: olegtarasov/get-tag@v2.1
       id: tagName
 
-    - name: Build image
-      env:
-        TAGNAME: ${{ steps.tagName.outputs.tag }}
-      run: docker build --pull -t kooldev/pdf:$TAGNAME .
+    - name: Build and export
+      uses: docker/build-push-action@v3
+      with:
+        load: true
+        tags: |
+          kooldev/pdf:${{ steps.tagName.outputs.tag }}
+          kooldev/pdf:1.0
 
-    - name: Push to hub
-      env:
-        TAGNAME: ${{ steps.tagName.outputs.tag }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: |
-        docker tag kooldev/pdf:$TAGNAME kooldev/pdf:1.0
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker push kooldev/pdf:$TAGNAME
-        docker push kooldev/pdf:1.0
+    - name: Build and push image
+      uses: docker/build-push-action@v3
+      if: github.ref == 'refs/heads/master' && github.repository == 'kool-dev/pdf'
+      with:
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          kooldev/pdf:${{ steps.tagName.outputs.tag }}
+          kooldev/pdf:1.0

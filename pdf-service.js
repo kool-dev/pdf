@@ -154,7 +154,7 @@ async function generatePdf(url, media, options = {}) {
     log('generatePdf: goto', url);
 
     await page.goto(url, {
-        waitUntil: 'networkidle2',
+        waitUntil: 'networkidle0',
     });
 
     let filename = generateFileName() + '.pdf';

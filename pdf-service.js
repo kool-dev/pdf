@@ -60,7 +60,7 @@ app.post('/from-html', async (req, res) => {
 
         fs.unlinkSync(fullHtmlPath);
     } catch (err) {
-        log('/from-html: error generating PDF', e);
+        log('/from-html: error generating PDF', err);
         deliverJson(res, {msg: 'failure generating PDF', err}, 500);
 
         return;
@@ -103,7 +103,7 @@ app.get('/from-url', async (req, res) => {
 
         deliverPdfFile(res, pdfFilePath);
     } catch (err) {
-        log('/from-url: error generating PDF', e);
+        log('/from-url: error generating PDF', err);
         let msg = 'failure generating PDF';
 
         deliverJson(res, {msg, err}, 500);

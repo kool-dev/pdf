@@ -175,13 +175,7 @@ async function generatePdf(url, media, options = {}) {
 
     log('generatePdf: generate PDF', pdfFilePath, options);
 
-    await page.pdf({
-        path: pdfFilePath,
-        scale: parseFloat(1),
-        format: 'A4',
-        printBackground: true,
-        ...options
-    });
+    await page.pdf(options);
 
     page.close();
 

@@ -72,17 +72,22 @@ app.post('/from-html', async (req, res) => {
         deliverPdfFile(res, pdfFilePath);
     } else {
         // compress PDF outoput
-        const cmd = `shinkpdf ${pdfFilePath} ${compressedFilePath} ${compressionResolution}`;
+        const cmd = `shinkpdf -o ${compressedFilePath} -r ${compressionResolution} ${pdfFilePath}`;
+
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log('Compressing - err:', err);
             }
+
             if (stdout || stderr) {
                 console.log('Compressing - out/err:', stdout, stderr);
             }
 
             deliverPdfFile(res, err ? pdfFilePath : compressedFilePath);
-            fs.unlinkSync(pdfFilePath);
+
+            if (! err) {
+                fs.unlinkSync(pdfFilePath);
+            }
         });
     }
 });
@@ -160,14 +165,17 @@ async function generatePdf(url, media, options = {}) {
     let filename = generateFileName() + '.pdf';
     const pdfFilePath = path.join(storagePath, filename);
 
-    log('generatePdf: generate PDF', pdfFilePath);
-    await page.pdf({
+    options = {
         path: pdfFilePath,
         scale: parseFloat(1),
         format: 'A4',
         printBackground: true,
         ...options
-    });
+    };
+
+    log('generatePdf: generate PDF', pdfFilePath, options);
+
+    await page.pdf(options);
 
     page.close();
 
@@ -178,10 +186,10 @@ function generateFileName() {
     return crypto.randomBytes(20).toString('hex')
 }
 
-function log(message) {
+function log(...messages) {
     let date = new Date().toISOString().replace('T', ' ').substr(0, 19)
 
-    console.log(`[${date}] ${message}`);
+    console.log(`[${date}]`, ...messages);
 }
 
 function getPdfOptions(options) {

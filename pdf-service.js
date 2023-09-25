@@ -128,7 +128,7 @@ function deliverJson(res, resp, status = 200) {
 function deliverPdfFile(res, pdfFilePath) {
     log('deliverPdfFile: going to deliver PDF', pdfFilePath);
 
-    res.download(pdfFilePath, 'document.pdf', () => {
+    res.sendFile(pdfFilePath, {}, () => {
         log('deliverPdfFile: going to remove file', pdfFilePath);
         fs.unlinkSync(pdfFilePath);
     });

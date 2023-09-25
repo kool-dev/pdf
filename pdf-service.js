@@ -57,13 +57,13 @@ app.post('/from-html', async (req, res) => {
     let pdfFilePath;
     try {
         pdfFilePath = await generatePdf(`file://${fullHtmlPath}`, req.query.media, options);
-
-        fs.unlinkSync(fullHtmlPath);
     } catch (err) {
         log('/from-html: error generating PDF', err);
         deliverJson(res, {msg: 'failure generating PDF', err}, 500);
 
         return;
+    } finally {
+        fs.unlinkSync(fullHtmlPath);
     }
 
     const compressedFilePath = `${pdfFilePath}_compressed.pdf`;
@@ -128,15 +128,7 @@ function deliverJson(res, resp, status = 200) {
 function deliverPdfFile(res, pdfFilePath) {
     log('deliverPdfFile: going to deliver PDF', pdfFilePath);
 
-    const reader = fs.createReadStream(pdfFilePath);
-
-    res.setHeader('Content-Length', fs.statSync(pdfFilePath).size);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline');
-    reader.on('open', () => {
-        reader.pipe(res);
-    });
-    reader.on('close', () => {
+    res.download(pdfFilePath, 'document.pdf', () => {
         log('deliverPdfFile: going to remove file', pdfFilePath);
         fs.unlinkSync(pdfFilePath);
     });

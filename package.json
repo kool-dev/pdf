@@ -6,7 +6,7 @@
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "express": "^4.17.1",
-    "puppeteer": "^5.2.1"
+    "puppeteer-core": "^22.12.1"
   },
-  "license": "SEE LICENSE IN LICENSE.md"
+  "license": "MIT"
 }

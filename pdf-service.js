@@ -1,5 +1,5 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -139,6 +139,8 @@ async function generatePdf(url, media, options = {}) {
 
     const page = await browser.newPage();
 
+    console.log(await page.browser().version());
+
     log('generatePdf: emulateMediaType');
 
     await page.emulateMediaType(media || 'screen');
@@ -224,6 +226,7 @@ app.listen(port, () => {
 
     (async () => {
         browser = await puppeteer.launch({
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
             args: [
                 '--headless',
                 '--no-sandbox',

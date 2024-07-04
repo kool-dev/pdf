@@ -1,5 +1,7 @@
 scripts:
-  yarn: kool docker node:14-alpine yarn
+  npm: kool docker kooldev/puppeteer:1.0 npm
 
   build:
     - docker build --no-cache -t kooldev/pdf:latest .
+    - docker build --no-cache -t kooldev/pdf:lambda --file Dockerfile.lambda .
+    - docker build --no-cache -t kooldev/pdf:lambda-dev --file Dockerfile.lambda-dev .

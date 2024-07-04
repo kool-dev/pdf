@@ -1,0 +1,20 @@
+FROM kooldev/pdf:lambda
+
+USER root
+
+# Install Emulator for Dev
+RUN <<-EOF
+    ARCH=$(uname -m)
+
+    if [ "$ARCH" == "aarch64" ]; then
+        ARCH="arm64"
+    fi
+
+    curl -Lo /usr/local/bin/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie-$ARCH
+    chmod +x /usr/local/bin/aws-lambda-rie
+EOF
+
+USER pptruser
+
+ENTRYPOINT [ "/usr/local/bin/aws-lambda-rie" ]
+CMD [ "/usr/local/bin/npx", "aws-lambda-ric", "lambda.handler" ]

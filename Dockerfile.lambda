@@ -1,0 +1,71 @@
+# Building using node:20-alpine3.19 because of https://github.com/aws/aws-lambda-nodejs-runtime-interface-client/issues/108
+FROM node:20-alpine3.19
+
+# as suggested at https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-in-docker
+
+COPY shrinkpdf.sh /usr/local/bin/shinkpdf
+
+RUN chmod +x /usr/local/bin/shinkpdf \
+    && apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      freetype-dev \
+      harfbuzz \
+      ca-certificates \
+      ttf-freefont \
+      ghostscript
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Add user so we don't need --no-sandbox.
+RUN addgroup -S pptruser && adduser -S -g pptruser pptruser \
+    && mkdir -p /home/pptruser/Downloads /app \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /app
+
+# Run everything after as non-privileged user.
+USER pptruser
+#######
+
+# FROM kooldev/puppeteer:1.0
+
+ARG FUNCTION_DIR="/function"
+
+USER root
+
+RUN apk add --no-cache --update --virtual .build-deps \
+    g++ \
+    make \
+    cmake \
+    unzip \
+    curl \
+    curl-dev \
+    autoconf \
+    automake \
+    libtool \
+    python3 && \
+    # https://github.com/aws/aws-lambda-nodejs-runtime-interface-client/issues/68#issuecomment-1571877109
+    apk add --no-cache --update --virtual .build-deps2 --repository=https://dl-cdn.alpinelinux.org/alpine/v3.16/main/ libexecinfo-dev
+
+USER pptruser
+
+WORKDIR ${FUNCTION_DIR}
+COPY --chown=pptruser:pptruser . ${FUNCTION_DIR}
+
+ENV NPM_CONFIG_CACHE=/tmp/.npm
+ENV NODE_ENV=production
+
+RUN npm install aws-lambda-ric
+
+USER root
+
+# cleanup
+RUN apk del .build-deps .build-deps2 && \
+    rm -rf /var/cache/apk/* /tmp/*
+
+USER pptruser
+
+ENTRYPOINT [ "/usr/local/bin/npx", "aws-lambda-ric" ]
+CMD [ "lambda.handler" ]

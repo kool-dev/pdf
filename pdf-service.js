@@ -52,9 +52,12 @@ app.post('/from-html', async (req, res) => {
     }
     const disableCompression = req.body.disableCompression || false;
     const compressionResolution = req.body.compressionResolution ?? 100;
+    if (!['number', 'string'].includes(typeof compressionResolution)) {
+        deliverJson(res, {msg: 'compressionResolution must be a positive integer'}, 400);
+        return;
+    }
     const resolution = Number(compressionResolution);
-    if (!['number', 'string'].includes(typeof compressionResolution) ||
-        !Number.isInteger(resolution) || resolution <= 0) {
+    if (!Number.isSafeInteger(resolution) || resolution <= 0) {
         deliverJson(res, {msg: 'compressionResolution must be a positive integer'}, 400);
         return;
     }

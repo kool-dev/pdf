@@ -89,7 +89,8 @@ test('compression uses fixed executable and separate arguments', async () => {
 });
 
 test('invalid compression input is rejected before files or commands', async () => {
-    for (const resolution of ['100; echo unexpected', '100 extra', '', 0, -1, 1.5, {}, [], true, 'Infinity']) {
+    for (const resolution of ['100; echo unexpected', '100 extra', '', 0, -1, 1.5,
+        {}, { toString: null, valueOf: null }, [], true, 'Infinity', '9007199254740992']) {
         const app = await service();
         const response = await app.request({ html: '<h1>PDF</h1>', compressionResolution: resolution });
         assert.equal(response.statusCode, 400);

@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../pdf-service.js'), 'utf8');
 
 // Exercise the actual route without a network listener, Chromium, or filesystem writes.
-async function service() {
+async function service({ compressionError = null, asynchronousCompression = false } = {}) {
     const routes = {};
     const writes = [];
     const pdfs = [];
@@ -42,7 +42,11 @@ async function service() {
         child_process: {
             execFile: (file, args, callback) => {
                 commands.push({ file, args: Array.from(args) });
-                callback(null, '', '');
+                if (asynchronousCompression) {
+                    setImmediate(() => callback(compressionError, '', ''));
+                } else {
+                    callback(compressionError, '', '');
+                }
             },
             exec: () => { assert.fail('request must not invoke a shell'); },
         },
@@ -56,14 +60,18 @@ async function service() {
     await new Promise(setImmediate);
 
     async function request(body) {
+        let delivered;
+        const done = new Promise(resolve => { delivered = resolve; });
         const response = {
+            done,
             statusCode: 200,
             status(code) { this.statusCode = code; return this; },
             contentType() { return this; },
-            send(body) { this.body = body; return this; },
+            send(body) { this.body = body; delivered(); return this; },
             sendFile(filename, options, callback) {
                 this.file = filename;
                 callback();
+                delivered();
             },
         };
         await routes['/from-html']({ body, query: {} }, response);
@@ -134,5 +142,30 @@ test('missing or non-string HTML returns a client error', async () => {
         assert.equal(app.writes.length, 0);
         assert.equal(app.pdfs.length, 0);
         assert.equal(app.commands.length, 0);
+    }
+});
+
+test('asynchronous compression success and failure deliver and clean up', { timeout: 2000 }, async () => {
+    for (const compressionError of [null, new Error('compression failed')]) {
+        const app = await service({ compressionError, asynchronousCompression: true });
+        const response = await app.request({ html: '<h1>PDF</h1>' });
+        assert.equal(response.file, undefined);
+        await response.done;
+        const original = app.pdfs[0].path;
+        const compressed = `${original}_compressed.pdf`;
+        assert.equal(response.statusCode, 200);
+        assert.equal(response.file, compressionError ? original : compressed);
+        assert.equal(app.removals.filter(filename => filename === original).length, 1);
+        assert.equal(app.removals.includes(compressed), !compressionError);
+        assert.ok(app.removals.some(filename => filename.endsWith('.html')));
+    }
+});
+
+test('non-string options retain the legacy ignored-options behavior', async () => {
+    for (const options of [{}, [], 42]) {
+        const app = await service();
+        const response = await app.request({ html: '<h1>PDF</h1>', options });
+        assert.equal(response.statusCode, 200);
+        assert.equal(app.pdfs[0].format, 'A4');
     }
 });

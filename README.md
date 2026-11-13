@@ -2,6 +2,10 @@
 
 PDF generation micro-service. Super easy to add on `kool` and `docker-compose` based environments, for generating PDFs from any URLs or given HTML content.
 
+## Deployment security
+
+This service has no authentication and renders caller-provided URLs and active HTML. Keep it on a private network or behind an authenticated gateway, restrict outbound network access, and do not expose it directly to untrusted users. Chromium currently launches with `--no-sandbox`; request validation is not a substitute for process/network isolation or maintained browser dependencies.
+
 ## Getting started using this microservice in your project
 
 If you use Docker Compose (hopefully with [`kool`](https://github.com/kool-dev/kool) to make things simpler) you can get PDF generation on your project with a few simple steps:

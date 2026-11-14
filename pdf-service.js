@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const app = express();
 const bodyParser = require('body-parser');
 const compression = require('compression');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 
 app.use(compression());
 app.use(bodyParser.urlencoded({
@@ -46,9 +46,28 @@ app.post('/from-html', async (req, res) => {
     calls.fromHtml++;
 
     const html = req.body.html;
+    if (typeof html !== 'string') {
+        deliverJson(res, {msg: 'html must be a string'}, 400);
+        return;
+    }
     const disableCompression = req.body.disableCompression || false;
-    const compressionResolution = req.body.compressionResolution || 100;
-    const options = getPdfOptions(req.body.options);
+    const compressionResolution = req.body.compressionResolution ?? 100;
+    if (!['number', 'string'].includes(typeof compressionResolution)) {
+        deliverJson(res, {msg: 'compressionResolution must be a positive integer'}, 400);
+        return;
+    }
+    const resolution = Number(compressionResolution);
+    if (!Number.isSafeInteger(resolution) || resolution <= 0) {
+        deliverJson(res, {msg: 'compressionResolution must be a positive integer'}, 400);
+        return;
+    }
+    let options;
+    try {
+        options = getPdfOptions(req.body.options);
+    } catch (err) {
+        deliverJson(res, {msg: 'options must be a JSON object'}, 400);
+        return;
+    }
     const htmlFile = generateFileName() + '.html';
     const fullHtmlPath = path.join(storagePath, htmlFile);
 
@@ -72,9 +91,7 @@ app.post('/from-html', async (req, res) => {
         deliverPdfFile(res, pdfFilePath);
     } else {
         // compress PDF outoput
-        const cmd = `shinkpdf -o ${compressedFilePath} -r ${compressionResolution} ${pdfFilePath}`;
-
-        exec(cmd, (err, stdout, stderr) => {
+        execFile('shinkpdf', ['-o', compressedFilePath, '-r', String(resolution), pdfFilePath], (err, stdout, stderr) => {
             if (err) {
                 console.log('Compressing - err:', err);
             }
@@ -190,11 +207,13 @@ function getPdfOptions(options) {
     }
 
     const parsedOptions = JSON.parse(options);
+    if (parsedOptions === null || typeof parsedOptions !== 'object' || Array.isArray(parsedOptions)) {
+        throw new Error('options must be a JSON object');
+    }
 
     let mappedOptions = {};
 
     [
-        'path',
         'scale',
         'displayHeaderFooter',
         'headerTemplate',

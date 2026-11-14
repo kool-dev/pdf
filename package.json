@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "node pdf-service.js"
+    "start": "node pdf-service.js",
+    "test": "node --test"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
